@@ -1,0 +1,23 @@
+{% extends 'teachers/dashboard.html' %}
+
+{% block content %}
+<h2>Payment Creation for {{ month.month }}</h2>
+
+<form method="POST">
+    {% csrf_token %}
+    
+    <h3>Students in Team {{ month.team.name }}:</h3>
+    <ul>
+        {% for student in students %}
+        <li>
+            {{ student.user.first_name }} {{ student.user.last_name }}:
+            <input type="text" name="payment_{{ student.id }}" placeholder="Enter payment amount">
+        </li>
+        {% empty %}
+        <li>No students in this team.</li>
+        {% endfor %}
+    </ul>
+
+    <button class="btn btn-success" type="submit">Saqlash</button>
+</form>
+{% endblock content %}
