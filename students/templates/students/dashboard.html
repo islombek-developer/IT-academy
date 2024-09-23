@@ -142,6 +142,20 @@
   <!--Main layout-->
 </body>
 <!-- MDB -->
+<script>
+  document.getElementById('add-file-btn').addEventListener('click', function () {
+      // Create a new file input
+      var newFileInput = document.createElement('input');
+      newFileInput.type = 'file';
+      newFileInput.name = 'homework_file';
+      newFileInput.classList.add('form-control');
+
+      // Append the new file input to the container
+      var fileContainer = document.getElementById('file-container');
+      fileContainer.appendChild(newFileInput);
+  });
+</script>
+
 <script
   type="text/javascript"
   src="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/7.3.0/mdb.umd.min.js"

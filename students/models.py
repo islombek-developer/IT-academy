@@ -25,11 +25,10 @@ class Lesson(models.Model):
 
 
 class Homework(models.Model):
-    lesson = models.OneToOneField(Lesson, on_delete=models.CASCADE, related_name='homework')
+    lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE, related_name='homework')
     team = models.ForeignKey(Team, on_delete=models.CASCADE, null=True, blank=True, related_name='homeworks')
     student = models.ForeignKey(Student, on_delete=models.CASCADE, related_name='students')
     description = models.TextField()
-    homework_file = models.FileField(upload_to='homeworks', blank=True, null=True)
     date = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -37,6 +36,14 @@ class Homework(models.Model):
 
     def __str__(self):
         return f"{self.student.user.first_name}-- {self.lesson.title}"
+
+class Homework_file(models.Model):
+    homework = models.ForeignKey(Homework,on_delete=models.CASCADE, related_name='files')
+    homework_file = models.FileField(upload_to='homeworks', blank=True, null=True)
+
+
+
+
 
 class Date(models.Model):
     date = models.DateTimeField(auto_now_add=True)

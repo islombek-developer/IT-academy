@@ -3,7 +3,7 @@ from django.shortcuts import render,get_object_or_404,redirect
 from  users.permissionmixin import TeacherRequiredMixin
 from  django.views import  View
 from  users.models import Teacher,Student,User
-from  students.models import Lesson,Team,Homework,Davomat,Date
+from  students.models import Lesson,Team,Homework,Davomat,Date,Homework_file
 from users.forms import ProfileForm,ResetPasswordForm
 from .forms import CreateLessonForm,DavomatForm,TeacherProfileForm
 from django.urls import reverse
@@ -122,7 +122,9 @@ class TeacherStudentLeson(TeacherRequiredMixin, View):
     def get(self, request, *args, **kwargs):
         lesson_id = kwargs.get('id')  
         lesson = get_object_or_404(Lesson, id=lesson_id)
-        homeworks = Homework.objects.filter(lesson=lesson).select_related('student', 'team')
+        
+        homeworks = Homework.objects.filter(lesson=lesson).select_related('student', 'student__user').prefetch_related('files')
+        
         return render(request, 'teachers/students.html', {'homeworks': homeworks, 'lesson': lesson})
 
 class TeacherHomeworkListView(TeacherRequiredMixin, View):
@@ -323,3 +325,26 @@ def create_attendance(request, date_id):
         'attendance_ids': attendance_ids,
     }
     return render(request, 'teachers/davomat_list.html', context)
+
+import zipfile
+import os
+from django.http import HttpResponse
+from django.shortcuts import get_object_or_404
+
+def zip_homework_files(request, student_id):
+    student = get_object_or_404(Student, id=student_id)
+    
+    # Fetch all homework files for the student
+    homework_files = Homework_file.objects.filter(homework__student=student)
+
+    # Create a zip file in memory
+    zip_filename = f"{student.user.first_name}_{student.user.last_name}_homework_files.zip"
+    response = HttpResponse(content_type='application/zip')
+    response['Content-Disposition'] = f'attachment; filename={zip_filename}'
+
+    with zipfile.ZipFile(response, 'w') as zip_file:
+        for homework_file in homework_files:
+            # Write the file to the zip file
+            zip_file.write(homework_file.homework_file.path, os.path.basename(homework_file.homework_file.path))
+    
+    return response

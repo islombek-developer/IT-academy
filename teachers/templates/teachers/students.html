@@ -1,34 +1,36 @@
 {% extends 'teachers/dashboard.html' %}
 
 {% block content %}
-<div class="mt-5">
-  <h4>{{ lesson.title }} - Student Homework Submissions</h4>
-</div>
-<br>
+<h2>Student Submissions for {{ lesson.title }}</h2>
 
 <table class="table">
     <thead>
-      <tr>
-        <th scope="col">First Name</th>
-        <th scope="col">Team</th>
-        <th scope="col">Homework Status</th>
-        <th scope="col">Homework File</th>
-      </tr>
+        <tr>
+            <th>Student Name</th>
+            <th>Files Submitted</th>
+            <th>Grade</th>
+            <th>Action</th>
+        </tr>
     </thead>
     <tbody>
         {% for homework in homeworks %}
-        <tr class="table-info">
-             <td><a href="#">{{ homework.student.user.first_name }}</a></td> <td>{{ homework.student.team.name }}</td>
-            <td>{{ homework.lesson.homework_status|yesno:"Active,Inactive" }}</td>
+        <tr>
+            <td>{{ homework.student.user.first_name }} {{ homework.student.user.last_name }}</td>
             <td>
-              {% if homework.homework_file %}
-              <a href="{{ homework.homework_file.url }}">{{homework.homework_file}}</a>
-              {% else %}
-              No File
-              {% endif %}
-          </td>
+              <ul>
+                  <td>
+                    <a href="{% url 'teachers:zip_homework_files' homework.student.id %}" class="btn btn-success">Download All Files as Zip</a>
+                  </td>
+              </ul>
+    
+          
+            </td>
+            <td>{{ homework.grade|default:"Not graded yet" }}</td>
+            <td>
+                <a href="#" class="btn btn-primary">Review & Grade</a>
+            </td>
         </tr>
         {% endfor %}
     </tbody>
-  </table>
-{% endblock content %}
+</table>
+{% endblock %}

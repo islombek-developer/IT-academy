@@ -4,7 +4,7 @@ from users.permissionmixin import StudentRequiredMixin
 from django.views import View
 from users.models import Student, Team,User
 from .forms import HomeworkForm,DavomatForm
-from .models import Lesson, Homework,Davomat
+from .models import Lesson, Homework,Davomat,Homework_file
 from users.forms import ProfileForm,ResetPasswordForm
 
 class StudentDashboardView(StudentRequiredMixin, View):
@@ -28,31 +28,39 @@ class StudentLessonsView(StudentRequiredMixin, View):
         lessons = team.lesson.all()
         return render(request, 'students/lessons.html', context={"lessons":lessons})
     
-
 class HomeworkView(StudentRequiredMixin, View):
     def get(self, request, lesson_id):
-        form = HomeworkForm()
-        return render(request, 'students/homework.html', context={"form":form})
-    
+        form = HomeworkForm()  # Form for description
+        return render(request, 'students/homework.html', context={"form": form})
+
     def post(self, request, lesson_id):
         lesson = get_object_or_404(Lesson, id=lesson_id)
         student = get_object_or_404(Student, user=request.user)
 
-        form = HomeworkForm(request.POST, request.FILES)
-        if form.is_valid():
-            homework = Homework()
-            homework.lesson = lesson
-            homework.student = student
-            homework.description = form.cleaned_data['description']
-            homework.homework_file = form.cleaned_data['homework_file']
-            homework.save()
+        form = HomeworkForm(request.POST)
+        files = request.FILES.getlist('homework_file')  # Get the list of uploaded files
 
+        if form.is_valid():
+            # Create Homework object
+            homework = Homework.objects.create(
+                lesson=lesson,
+                student=student,
+                description=form.cleaned_data['description']
+            )
+
+            # Handle the file uploads
+            for file in files:
+                Homework_file.objects.create(homework=homework, homework_file=file)
+
+            # Update lesson status
             lesson.homework_status = True
             lesson.save()
 
             return redirect('students:dashboard')
-        form = HomeworkForm()
-        return render(request, 'students/homework.html', context={"form":form})
+
+        return render(request, 'students/homework.html', context={"form": form})
+
+
         
 class HomeDetailView(StudentRequiredMixin,View):
     def get(self,request,lesson_id):
@@ -122,3 +130,6 @@ def student_total_oylik(request, student_id):
         'tolovlar': tolovlar,
     }
     return render(request, 'students/student_oylik.html', context)
+
+
+    
